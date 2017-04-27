@@ -1,0 +1,19 @@
+{
+  "name": "kippibot-discord",
+  "version": "1.0.0",
+  "description": "Discord bot",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nicholas Caro",
+  "license": "ISC",
+  "dependencies": {
+    "cleverbot-node": "^0.3.10",
+    "discord.js": "^11.0.0",
+    "moment": "^2.18.1",
+    "request": "^2.81.0",
+    "return-deep-diff": "^0.2.7"
+  }
+}
