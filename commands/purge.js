@@ -1,5 +1,5 @@
 exports.run = function(client, message, args) {
-  let messagecount = parseInt(args.join(' '));
+  let messagecount = parseInt(args.join(' '), 10);
   message.channel.fetchMessages({
     limit: messagecount
   }).then(messages => message.channel.bulkDelete(messages));

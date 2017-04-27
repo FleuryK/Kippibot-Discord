@@ -5,8 +5,6 @@ const settings = require(`../settings.json`),
       
 var myTimer;
 
-//let defaultAnnouncementsChan = settings.
-
 let twitchStreams = JSON.parse(fs.readFileSync('./streamers.json', 'utf8')),
     kraken = request.defaults({
     baseUrl: 'https://api.twitch.tv/kraken/',
@@ -48,12 +46,13 @@ exports.run = (client, message, params) => {
 		
         let stream = params[2].toLowerCase();
         if (params[1] === 'add') {
-            for (i = 0; i < twitchStreams.streamers.length; i++) {
+            for (var i = 0; i < twitchStreams.streamers.length; i++) {
                 if (stream === twitchStreams.streamers[i].name) { 
                     return message.channel.sendMessage("Channel " + stream + " is already in the caster database." );
                 }
             }
             let userId;
+            let logo;
 			kraken({
 				url: 'users?login=' + stream
 			}, (err, res, body) => {
@@ -83,9 +82,9 @@ exports.run = (client, message, params) => {
 			});
         }
         if (params[1] === 'remove') {
-            for (i = 0; i < twitchStreams.streamers.length; i++) {
-                if (stream === twitchStreams.streamers[i].name) { 
-                    twitchStreams.streamers.splice(i, 1);
+            for (var j = 0; j < twitchStreams.streamers.length; j++) {
+                if (stream === twitchStreams.streamers[j].name) { 
+                    twitchStreams.streamers.splice(j, 1);
                     fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
                     if (err) console.error(err);
                     else {
@@ -110,23 +109,22 @@ exports.run = (client, message, params) => {
     };
     
 function alreadyOnline(channel) {
-    for (i = 0; i < twitchStreams.streamers.length; i++) {
+    for (var i = 0; i < twitchStreams.streamers.length; i++) {
             if (channel === twitchStreams.streamers[i].name) { 
                 if (twitchStreams.streamers[i].status === "online") {
                     return true;
-                } 
-                else {
-                    return false;
                 }
+ 
+                return false;
         }
     }     
 }
 
-function updateStreams(client, message) {
+function updateStreams(client) {
 var channelId = settings.defaultChannelAnnouncements;
 var streams = "";
 var onlineStreams = [];
-for (j = 0; j < twitchStreams.streamers.length; j++) {
+for (var j = 0; j < twitchStreams.streamers.length; j++) {
     if (j === twitchStreams.streamers.length - 1) {
         streams = streams + twitchStreams.streamers[j].id;
     } else {
@@ -141,7 +139,7 @@ kraken({
             return console.log('Error recieving info from the Twitch API.');
         }
 		if (body._total > 0) {
-        for (i = 0; i < body.streams.length; i++) {
+        for (var i = 0; i < body.streams.length; i++) {
             let chan = body.streams[i];
             onlineStreams[i] = chan.channel.name;
             if (!alreadyOnline(chan.channel.name)) {
@@ -149,9 +147,9 @@ kraken({
                 const embed = new Discord.RichEmbed()
                     .setTitle(chan.channel.display_name + " went online!")
                     .setColor(0x00FF00)
-                    .setFooter('Kippibot')
+                    .setFooter('Kippibot' + 'Stream went live at: ' + chan.created_at)
                     .setThumbnail(chan.channel.logo)
-                    .setTimestamp()
+                    //.setTimestamp()
                     .setURL('https://www.twitch.tv/' + chan.channel.display_name)
                     .addField('Status', chan.channel.status, true)
                     .addField('Viewers', chan.viewers, true)
@@ -163,7 +161,7 @@ kraken({
                     const embed = new Discord.RichEmbed()
                     .setTitle(chan.channel.display_name + " went online!")
                     .setColor(0x00FF00)
-                    .setFooter('Kippibot' + 'Stream went live at: ' + )
+                    .setFooter('Kippibot' + 'Stream went live at: ' + chan.created_at)
                     //.setTimestamp()
                     .setURL('https://www.twitch.tv/' + chan.channel.display_name)
                     .addField('Status', chan.channel.status, true)
@@ -178,7 +176,7 @@ kraken({
         }
 		}
         //Search for the channel, and change its status if applicable.
-        for (n = 0; n < twitchStreams.streamers.length; n++) {
+        for (var n = 0; n < twitchStreams.streamers.length; n++) {
             if (onlineStreams.indexOf(twitchStreams.streamers[n].name) < 0) {
                     if (twitchStreams.streamers[n].status !== "offline") {
                         getChannelInfo(twitchStreams.streamers[n].id, twitchStreams.streamers[n].logo, client, channelId);
@@ -305,7 +303,7 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
                     .addField('Viewers', 'N/A', true)
                     .addField('Game', 'N/A', true)
                     .addField('Followers', body.followers, true);  
-            return client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
+            client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
         }   
         else {
             const embed = new Discord.RichEmbed()
@@ -319,7 +317,7 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
                     .addField('Viewers', 'N/A', true)
                     .addField('Game', 'N/A', true)
                     .addField('Followers', body.followers, true);   
-        return client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
+        client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
         }
         });
 }
