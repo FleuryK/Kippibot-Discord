@@ -7,7 +7,8 @@ module.exports = message => {
       return;
   }
   if (!message.content.startsWith(settings.prefix)) {
-      return;
+    if(message.mentions.users.size >= 1) console.log(message.mentions.users);
+    return;
   }
   let command = message.content.split(' ')[0].slice(settings.prefix.length);
   let params = message.content.split(' ').slice(1);

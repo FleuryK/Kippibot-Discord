@@ -2,7 +2,7 @@ const settings = require(`../settings.json`),
       request = require('request'),
       Discord = require('discord.js'),
       fs = require ('fs');
-      
+
 var myTimer;
 
 let twitchStreams = JSON.parse(fs.readFileSync('./streamers.json', 'utf8')),
@@ -27,27 +27,27 @@ exports.run = (client, message, params) => {
         if (!params[1]) {
             return message.channel.sendMessage("You must specify an operand!").catch(console.error);
         }
-		
+
         if (!params[2]) {
             return message.channel.sendMessage("You must specify a channel!").catch(console.error);
         }
-		
+
 		/*if (params[1] === 'announce') {
 			let channelId = message.mentions.channels.firstKey();
 			/*settings.
 			fs.writeFile('./settings.json', JSON.stringify(settingsConf, null, 2), (err) => {
-				
+
 			}
-			
+
 			message.channel.sendMessage("I will now announce streams in channel: " + params[2]);
 			//return client.channels.get(channelId).sendMessage("it worked master!");
 			//return console.log(message.mentions.channels.firstKey());
 		}*/
-		
+
         let stream = params[2].toLowerCase();
         if (params[1] === 'add') {
             for (var i = 0; i < twitchStreams.streamers.length; i++) {
-                if (stream === twitchStreams.streamers[i].name) { 
+                if (stream === twitchStreams.streamers[i].name) {
                     return message.channel.sendMessage("Channel " + stream + " is already in the caster database." );
                 }
             }
@@ -78,12 +78,12 @@ exports.run = (client, message, params) => {
 					   message.channel.sendMessage("Channel " + stream + " added to database.");
 				   }
 			   });
-			
+
 			});
         }
         if (params[1] === 'remove') {
             for (var j = 0; j < twitchStreams.streamers.length; j++) {
-                if (stream === twitchStreams.streamers[j].name) { 
+                if (stream === twitchStreams.streamers[j].name) {
                     twitchStreams.streamers.splice(j, 1);
                     fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
                     if (err) console.error(err);
@@ -93,7 +93,7 @@ exports.run = (client, message, params) => {
                     });
                 }
             }
-            if (i > twitchStreams.streamers.length + 1) return message.channel.sendMessage("Channel " + stream + " is not in the caster database." );
+            if (j > twitchStreams.streamers.length + 1) return message.channel.sendMessage("Channel " + stream + " is not in the caster database." );
         }
     }
     else if (params[0] === 'startUpdate') {
@@ -107,17 +107,17 @@ exports.run = (client, message, params) => {
             console.log("No longer polling Twitch.");
         }
     };
-    
+
 function alreadyOnline(channel) {
     for (var i = 0; i < twitchStreams.streamers.length; i++) {
-            if (channel === twitchStreams.streamers[i].name) { 
+            if (channel === twitchStreams.streamers[i].name) {
                 if (twitchStreams.streamers[i].status === "online") {
                     return true;
                 }
- 
+
                 return false;
         }
-    }     
+    }
 }
 
 function updateStreams(client) {
@@ -147,14 +147,14 @@ kraken({
                 const embed = new Discord.RichEmbed()
                     .setTitle(chan.channel.display_name + " went online!")
                     .setColor(0x00FF00)
-                    .setFooter('Kippibot' + 'Stream went live at: ' + chan.created_at)
+                    .setFooter('Kippibot' + ' | Stream went live at: ' + chan.created_at)
                     .setThumbnail(chan.channel.logo)
                     //.setTimestamp()
                     .setURL('https://www.twitch.tv/' + chan.channel.display_name)
                     .addField('Status', chan.channel.status, true)
                     .addField('Viewers', chan.viewers, true)
                     .addField('Game', chan.game, true)
-                    .addField('Followers', chan.channel.followers, true);  
+                    .addField('Followers', chan.channel.followers, true);
                     client.channels.get(channelId).sendEmbed(embed).catch(console.error);
                 }
                 else {
@@ -170,9 +170,9 @@ kraken({
                     .addField('Followers', chan.channel.followers, true);
                     client.channels.get(channelId).sendEmbed(embed).catch(console.error);
                 }
-                
+
             }
-            
+
         }
 		}
         //Search for the channel, and change its status if applicable.
@@ -195,7 +195,7 @@ kraken({
 
     );
 }
-    
+
 /*function getUserId (client, message, params, saveToFile) {
     let userId;
         kraken({
@@ -302,9 +302,9 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
                     .addField('Status', 'Offline', true)
                     .addField('Viewers', 'N/A', true)
                     .addField('Game', 'N/A', true)
-                    .addField('Followers', body.followers, true);  
+                    .addField('Followers', body.followers, true);
             client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
-        }   
+        }
         else {
             const embed = new Discord.RichEmbed()
                     .setTitle(body.display_name + " went offline!")
@@ -316,7 +316,7 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
                     .addField('Status', 'Offline', true)
                     .addField('Viewers', 'N/A', true)
                     .addField('Game', 'N/A', true)
-                    .addField('Followers', body.followers, true);   
+                    .addField('Followers', body.followers, true);
         client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
         }
         });
@@ -331,6 +331,6 @@ exports.conf = {
 
 exports.help = {
   name: 'twitch',
-  description: 'Displays stream info for a given channel. Can also add or remove channels to shoutout.',
-  usage: 'twitch [channel name]; twitch channel add|remove  [channel name['
+  description: 'Commands for managing caster database.',
+  usage: 'twitch channel add|remove  [channel name]. Use twitch startUpdate to start tracking status update for all channels in the database.'
 };
