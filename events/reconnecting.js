@@ -1,3 +1,3 @@
 module.exports = client => {
-  console.log('Reconnecting...');
+  console.log(client.user.username + ': Reconnecting...');
 };

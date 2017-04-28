@@ -1,3 +1,3 @@
 module.exports = (guild, user) => {
- guild.defaultChannel.sendMessage(`${user.username} has been banned! :O`); 
+  guild.defaultChannel.sendMessage(`${user.username} has been banned! :O`);
 };

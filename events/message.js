@@ -3,8 +3,8 @@ module.exports = message => {
   let client = message.client;
   if (message.author.bot) return;
   if (message.channel.type === 'dm') {
-      message.channel.sendMessage('DMs are a work in progress, sorry fam. Have a cookie instead :cookie:');
-      return;
+    message.channel.sendMessage('DMs are a work in progress, sorry fam. Have a cookie instead :cookie:');
+    return;
   }
   if (!message.content.startsWith(settings.prefix)) {
     if(message.mentions.users.size >= 1) console.log(message.mentions.users);
