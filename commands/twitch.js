@@ -1,7 +1,8 @@
 const settings = require(`../settings.json`),
   request = require('request'),
   Discord = require('discord.js'),
-  fs = require ('fs');
+  fs = require ('fs'),
+  moment = require('moment');
 
 var myTimer;
 
@@ -146,7 +147,7 @@ function updateStreams(client) {
             const embed = new Discord.RichEmbed()
             .setTitle(chan.channel.display_name + " went online!")
             .setColor(0x00FF00)
-            .setFooter('Kippibot' + ' | Stream went live at: ' + chan.created_at)
+            .setFooter('Kippibot' + ' | Stream went live at: ' + `${moment(chan.created_at).format('MM-DD-YYYY HH:mm:ss')} `)
             .setThumbnail(chan.channel.logo)
             //.setTimestamp()
             .setURL('https://www.twitch.tv/' + chan.channel.display_name)
@@ -161,7 +162,6 @@ function updateStreams(client) {
             .setTitle(chan.channel.display_name + " went online!")
             .setColor(0x00FF00)
             .setFooter('Kippibot' + 'Stream went live at: ' + chan.created_at)
-            //.setTimestamp()
             .setURL('https://www.twitch.tv/' + chan.channel.display_name)
             .addField('Status', chan.channel.status, true)
             .addField('Viewers', chan.viewers, true)
@@ -206,7 +206,6 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
       .setTitle(body.display_name + " went offline!")
       .setColor(0xFF0000)
       .setFooter('Kippibot')
-      .setTimestamp()
       .setURL('https://www.twitch.tv/' + body.display_name)
       .addField('Status', 'Offline', true)
       .addField('Viewers', 'N/A', true)
