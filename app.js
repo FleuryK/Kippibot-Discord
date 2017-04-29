@@ -5,7 +5,20 @@ const token = settings.token;
 const fs = require ('fs');
 const moment = require('moment');
 const client = new Discord.Client();
-require('./util/eventListener')(client);
+var Cleverbot = require('cleverbot.io'),
+  clbotUser = settings.cleverbotApiUser,
+  clbotApiKey = settings.cleverbotApiKey,
+  clbot = new Cleverbot(clbotUser, clbotApiKey),
+  sessionName = "";
+require('./util/eventListener')(client, clbot);
+
+clbot.create(function (err, session) {
+  if (err) console.error(err);
+  else {
+    console.log("Session created/updated. " + session);
+    sessionName = session;
+  }
+});
 
 const log = message => {
   console.log(`[${moment().format('DD-MM-YYYY HH:mm:ss')}] ${message}`);
@@ -45,6 +58,26 @@ client.reload = command => {
     }
   });
 };
+
+client.on("message", message => {
+  if(message.mentions.users.size >= 1) {
+    if(message.mentions.users.first() === client.user && client.user.id === message.content.split(' ')[0].substring(2, 20)) {
+      clbot.setNick(sessionName);
+      //return console.log(sessionName);
+      var question = message.content.substring(22);
+      console.log(question);
+      clbot.ask(question, function (err, response) {
+        //console.log(response);
+        if (err) return console.error(err);
+        message.channel.startTyping();
+        setTimeout(() =>{
+          message.channel.sendMessage(response).catch(console.error);
+          message.channel.stopTyping();
+        }, Math.random() * (1 - 3) + 1 * 1000);
+      });
+    }
+  }
+});
 
 
 client.elevation = message => {

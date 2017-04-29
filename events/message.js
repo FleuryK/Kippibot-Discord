@@ -1,5 +1,5 @@
 const settings = require('../settings.json');
-module.exports = message => {
+module.exports = (message) => {
   let client = message.client;
   if (message.author.bot) return;
   if (message.channel.type === 'dm') {
@@ -7,10 +7,10 @@ module.exports = message => {
     return;
   }
   if (!message.content.startsWith(settings.prefix)) {
-    if(message.mentions.users.size >= 1) console.log(message.mentions.users);
     return;
   }
   let command = message.content.split(' ')[0].slice(settings.prefix.length);
+  command = command.toLowerCase();
   let params = message.content.split(' ').slice(1);
   let perms = client.elevation(message);
   let cmd;

@@ -21,9 +21,11 @@ exports.run = (client, message, params) => {
   if(!params[0]) {
     return message.channel.sendMessage("You must specify a command!").catch(console.error);
   }
-  else if (params[0] === 'channel') {
+  for(var x = 0; x < params.length; x++) {
+    params[x] = params[x].toLowerCase();
+  }
+  if (params[0] === 'channel') {
 
-      //return message.channel.sendMessage("it worked!");
     if (!params[1]) {
       return message.channel.sendMessage("You must specify an operand!").catch(console.error);
     }
@@ -44,7 +46,7 @@ exports.run = (client, message, params) => {
 			//return console.log(message.mentions.channels.firstKey());
 		}*/
 
-    let stream = params[2].toLowerCase();
+    let stream = params[2];
     if (params[1] === 'add') {
       for (var i = 0; i < twitchStreams.streamers.length; i++) {
         if (stream === twitchStreams.streamers[i].name) {
@@ -96,12 +98,12 @@ exports.run = (client, message, params) => {
       if (j > twitchStreams.streamers.length + 1) return message.channel.sendMessage("Channel " + stream + " is not in the caster database." );
     }
   }
-  else if (params[0] === 'startUpdate') {
+  else if (params[0] === 'startupdate') {
     myTimer = setInterval(updateStreams, 60000, client, message);
     message.delete();
     console.log("Now polling Twitch every minute.");
   }
-  else if (params[0] === 'stopUpdate') {
+  else if (params[0] === 'stopupdate') {
     clearInterval(myTimer);
     message.delete();
     console.log("No longer polling Twitch.");
