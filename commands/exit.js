@@ -6,7 +6,7 @@ exports.conf = {
   enabled: true,
   guildOnly: false,
   aliases: ["quit"],
-  permLevel: 4
+  permLevel: 5
 };
 exports.help = {
   name: "exit",
