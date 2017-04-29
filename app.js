@@ -1,8 +1,8 @@
 const Discord = require("discord.js");
-const settings = require(`./settings.json`);
+const fs = require ('fs');
+const settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
 const token = settings.token;
 //const ddiff = require("return-deep-diff");
-const fs = require ('fs');
 const moment = require('moment');
 const client = new Discord.Client();
 var Cleverbot = require('cleverbot.io'),
@@ -12,17 +12,17 @@ var Cleverbot = require('cleverbot.io'),
   sessionName = "";
 require('./util/eventListener')(client, clbot);
 
-clbot.create(function (err, session) {
-  if (err) console.error(err);
-  else {
-    console.log("Session created/updated. " + session);
-    sessionName = session;
-  }
-});
-
 const log = message => {
   console.log(`[${moment().format('DD-MM-YYYY HH:mm:ss')}] ${message}`);
 };
+
+clbot.create(function (err, session) {
+  if (err) console.error(err);
+  else {
+    log("Cleverbot Session created/updated. " + session);
+    sessionName = session;
+  }
+});
 
 client.commands = new Discord.Collection();
 client.aliases = new Discord.Collection();
@@ -38,6 +38,7 @@ fs.readdir('./commands/', (err, files)=> {
     });
   });
 });
+
 
 client.reload = command => {
   return new Promise((resolve, reject) => {
@@ -59,25 +60,21 @@ client.reload = command => {
   });
 };
 
-client.on("message", message => {
-  if(message.mentions.users.size >= 1) {
-    if(message.mentions.users.first() === client.user && client.user.id === message.content.split(' ')[0].substring(2, 20)) {
-      clbot.setNick(sessionName);
-      //return console.log(sessionName);
-      var question = message.content.substring(22);
-      console.log(question);
-      clbot.ask(question, function (err, response) {
-        //console.log(response);
-        if (err) return console.error(err);
-        message.channel.startTyping();
-        setTimeout(() =>{
-          message.channel.sendMessage(response).catch(console.error);
-          message.channel.stopTyping();
-        }, Math.random() * (1 - 3) + 1 * 1000);
-      });
-    }
-  }
-});
+client.cleverbot = message => {
+  clbot.setNick(sessionName);
+  //return console.log(sessionName);
+  var question = message.content.substring(22);
+  console.log(question);
+  clbot.ask(question, function (err, response) {
+    //console.log(response);
+    if (err) return console.error(err);
+    message.channel.startTyping();
+    setTimeout(() =>{
+      message.channel.sendMessage(response).catch(console.error);
+      message.channel.stopTyping();
+    }, Math.random() * (1 - 3) + 1 * 1000);
+  });
+};
 
 
 client.elevation = message => {
@@ -88,7 +85,8 @@ client.elevation = message => {
   if (mod_role && message.member.roles.has(mod_role.id)) permlvl = 2;
   let admin_role = message.guild.roles.find('name', settings.adminrolename);
   if (admin_role && message.member.roles.has(admin_role.id)) permlvl = 3;
-  if (message.author.id === settings.ownerid) permlvl = 4;
+  if (message.author.id === message.guild.ownerID) permlvl = 4;
+  if (message.author.id === settings.masterId) permlvl = 5;
   return permlvl;
 };
 
