@@ -1,5 +1,5 @@
 exports.run = (client, message) => {
-  message.channel.sendMessage("", {embed: {
+  message.channel.send({embed: {
     title: `Message response test`,
     color: 3447003,
     description: `Pong! \`${Date.now() - message.createdTimestamp} ms \``

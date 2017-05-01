@@ -70,7 +70,7 @@ client.cleverbot = message => {
     if (err) return console.error(err);
     message.channel.startTyping();
     setTimeout(() =>{
-      message.channel.sendMessage(response).catch(console.error);
+      message.channel.send(response).catch(console.error);
       message.channel.stopTyping();
     }, Math.random() * (1 - 3) + 1 * 1000);
   });

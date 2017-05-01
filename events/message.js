@@ -4,7 +4,7 @@ module.exports = (message) => {
   let client = message.client;
   if (message.author.bot) return;
   if (message.channel.type === 'dm') {
-    message.channel.sendMessage('DMs are a work in progress, sorry fam. Have a cookie instead :cookie:');
+    message.channel.send('DMs are a work in progress, sorry fam. Have a cookie instead :cookie:');
     return;
   }
   if (!message.content.startsWith(settings.prefix)) {
@@ -27,15 +27,15 @@ module.exports = (message) => {
     case "enable":
     case "on":
       settings.cleverbotEnabled = true;
-      message.channel.sendMessage("Enabled cleverbot.");
+      message.channel.send("Enabled cleverbot.");
       break;
     case "disable":
     case "off":
       settings.cleverbotEnabled = false;
-      message.channel.sendMessage("Disabled cleverbot.");
+      message.channel.send("Disabled cleverbot.");
       break;
     default:
-      message.channel.sendMessage("Please specify an option.");
+      message.channel.send("Please specify an option.");
       break;
     }
     fs.writeFile('./settings.json', JSON.stringify(settings, null, 2), (err) => {

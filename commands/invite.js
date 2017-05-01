@@ -1,7 +1,7 @@
 exports.run = (client, message) => {
   client.generateInvite(1341643969)
     .then(link => {
-      message.channel.sendMessage(`Here's the link to invite me! ${link}`);
+      message.channel.send(`Here's the link to invite me! ${link}`);
     });
 };
 

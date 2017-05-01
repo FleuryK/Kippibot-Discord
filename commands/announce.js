@@ -4,7 +4,7 @@ exports.run = (client, message, args) => {
   if (announceMsg.length < 1) return message.reply("What am I announcing?");
   if (message.mentions.channels.size < 1) return message.reply("I can\'t announce without having a channel to say the announcement.");
 
-  announceChannel.sendMessage("@here " + announceMsg);
+  announceChannel.send("@here " + announceMsg);
 };
 
 exports.conf = {

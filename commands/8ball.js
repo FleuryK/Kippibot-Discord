@@ -1,13 +1,13 @@
 const request = require("request");
 exports.run = (client, message, params) => {
   if (!params[0]) {
-    return message.channel.sendMessage("The Magic Kippibot 8-ball cannot predict a blank fortune.");
+    return message.channel.send("The Magic Kippibot 8-ball cannot predict a blank fortune.");
   }
   request("https://api.rtainc.co/twitch/8ball?format=The+Magic+Kippibot+8-Ball+predicts...+%5B0%5D", function (err, res, body) {
     if (err || res.statusCode !== 200) {
       console.log("Error");
     }
-    else { message.channel.sendMessage(body); }
+    else { message.channel.send(body, {code: 'js'}); }
   });
 };
 exports.conf = {

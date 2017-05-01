@@ -1,5 +1,5 @@
 exports.run = (client, message) => {
-  message.channel.sendMessage("Goodbye. :wave:");
+  message.channel.send("Goodbye. :wave:");
   client.destroy();
 };
 exports.conf = {

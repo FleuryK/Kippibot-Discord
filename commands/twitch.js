@@ -19,7 +19,7 @@ let twitchStreams = JSON.parse(fs.readFileSync('./streamers.json', 'utf8')),
 
 exports.run = (client, message, params) => {
   if(!params[0]) {
-    return message.channel.sendMessage("You must specify a command!").catch(console.error);
+    return message.channel.send("You must specify a command!").catch(console.error);
   }
   for(var x = 0; x < params.length; x++) {
     params[x] = params[x].toLowerCase();
@@ -27,11 +27,11 @@ exports.run = (client, message, params) => {
   if (params[0] === 'channel') {
 
     if (!params[1]) {
-      return message.channel.sendMessage("You must specify an operand!").catch(console.error);
+      return message.channel.send("You must specify an operand!").catch(console.error);
     }
 
     if (!params[2]) {
-      return message.channel.sendMessage("You must specify a channel!").catch(console.error);
+      return message.channel.send("You must specify a channel!").catch(console.error);
     }
 
 		/*if (params[1] === 'announce') {
@@ -50,7 +50,7 @@ exports.run = (client, message, params) => {
     if (params[1] === 'add') {
       for (var i = 0; i < twitchStreams.streamers.length; i++) {
         if (stream === twitchStreams.streamers[i].name) {
-          return message.channel.sendMessage("Channel " + stream + " is already in the caster database." );
+          return message.channel.send("Channel " + stream + " is already in the caster database." );
         }
       }
       let userId;
@@ -60,11 +60,11 @@ exports.run = (client, message, params) => {
       }, (err, res, body) => {
         if (err || res.statusCode !== 200) {
           console.log('Error');
-          message.channel.sendMessage("There was an error recieving info from the Twitch API. Try again later.");
+          message.channel.send("There was an error recieving info from the Twitch API. Try again later.");
           return;
         }
         if (body._total === 0) {
-          return message.channel.sendMessage("That channel does not exist, you dunce.");
+          return message.channel.send("That channel does not exist, you dunce.");
         }
         userId = body.users[0]._id;
         logo = body.users[0].logo;
@@ -77,7 +77,7 @@ exports.run = (client, message, params) => {
         fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
           if (err) console.error(err);
           else {
-            message.channel.sendMessage("Channel " + stream + " added to database.");
+            message.channel.send("Channel " + stream + " added to database.");
           }
         });
 
@@ -90,12 +90,12 @@ exports.run = (client, message, params) => {
           fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
             if (err) console.error(err);
             else {
-              return message.channel.sendMessage("Channel " + stream + " has been removed from the caster database." );
+              return message.channel.send("Channel " + stream + " has been removed from the caster database." );
             }
           });
         }
       }
-      if (j > twitchStreams.streamers.length + 1) return message.channel.sendMessage("Channel " + stream + " is not in the caster database." );
+      if (j > twitchStreams.streamers.length + 1) return message.channel.send("Channel " + stream + " is not in the caster database." );
     }
   }
   else if (params[0] === 'startupdate') {
@@ -157,7 +157,7 @@ function updateStreams(client) {
             .addField('Viewers', chan.viewers, true)
             .addField('Game', chan.game, true)
             .addField('Followers', chan.channel.followers, true);
-            client.channels.get(channelId).sendEmbed(embed).catch(console.error);
+            client.channels.get(channelId).send({embed}).catch(console.error);
           }
           else {
             const embed = new Discord.RichEmbed()
@@ -169,7 +169,7 @@ function updateStreams(client) {
             .addField('Viewers', chan.viewers, true)
             .addField('Game', chan.game, true)
             .addField('Followers', chan.channel.followers, true);
-            client.channels.get(channelId).sendEmbed(embed).catch(console.error);
+            client.channels.get(channelId).send({embed}).catch(console.error);
           }
         }
       }
@@ -213,7 +213,7 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
       .addField('Viewers', 'N/A', true)
       .addField('Game', 'N/A', true)
       .addField('Followers', body.followers, true);
-      client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
+      client.channels.get(msgChanId).send({embed}).catch(console.error);
     }
     else {
       const embed = new Discord.RichEmbed()
@@ -227,7 +227,7 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
       .addField('Viewers', 'N/A', true)
       .addField('Game', 'N/A', true)
       .addField('Followers', body.followers, true);
-      client.channels.get(msgChanId).sendEmbed(embed).catch(console.error);
+      client.channels.get(msgChanId).send({embed}).catch(console.error);
     }
   });
 }

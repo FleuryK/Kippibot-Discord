@@ -10,11 +10,11 @@ exports.run = (client, message, args) => {
 
   if (message.guild.member(target).roles.has(muteRole.id)) {
     message.guild.member(target).removeRole(muteRole).then(() => {
-      target.sendMessage("you have been unmuted. " + "Reason: " + reason);
+      message.channel.send("Muted " + target + " Reason: " + reason);
     });
   } else {
     message.guild.member(target).addRole(muteRole).then(() => {
-      target.sendMessage("you have been muted. " + "Reason: " + reason);
+      message.channel.send("Muted. " + target + " Reason: " + reason);
     });
   }
 

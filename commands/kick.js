@@ -8,7 +8,7 @@ exports.run = (client, message, args) => {
   if (!guild.member(client.user).hasPermission('KICK_MEMBERS')) return message.reply('I do not have the correct permissions.').catch(console.error);
 
   if (!guild.member(target).kickable) return message.reply('I can\'t kick this member you dunce.');
-  target.sendMessage("You have been kicked from  " + guild.name + " Reason: " + reason);
+  target.send("You have been kicked from  " + guild.name + " Reason: " + reason);
   guild.member(target).kick();
 };
 
