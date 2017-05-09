@@ -1,6 +1,6 @@
 exports.run = (client, message) => {
   let gifNum = Math.floor(Math.random() * 5);
-  let file = ".\\fun\\tableflips\\tableflip-" + gifNum + ".gif";
+  let file = ".\\assets\\tableflips\\tableflip-" + gifNum + ".gif";
   message.channel.send({file});
 };
 
