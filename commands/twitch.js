@@ -140,36 +140,26 @@ function updateStreams(client) {
     if (err || res.statusCode !== 200) {
       return console.log('Error recieving info from the Twitch API.');
     }
+    //console.log(body);
     if (body._total > 0) {
       for (var i = 0; i < body.streams.length; i++) {
         let chan = body.streams[i];
         onlineStreams[i] = chan.channel.name;
         if (!alreadyOnline(chan.channel.name)) {
-          if (chan.channel.logo !== null) {
-            const embed = new Discord.RichEmbed()
-            .setTitle(chan.channel.display_name + " went online!")
-            .setColor(0x00FF00)
-            .setFooter('Kippibot' + ' | Stream went live at: ' + `${moment(chan.created_at).format('LLL')} `)
-            .setThumbnail(chan.channel.logo)
-            .setURL('https://www.twitch.tv/' + chan.channel.display_name)
-            .addField('Status', chan.channel.status, true)
-            .addField('Viewers', chan.viewers, true)
-            .addField('Game', chan.game, true)
-            .addField('Followers', chan.channel.followers, true);
-            client.channels.get(channelId).send({embed}).catch(console.error);
-          }
-          else {
-            const embed = new Discord.RichEmbed()
-            .setTitle(chan.channel.display_name + " went online!")
-            .setColor(0x00FF00)
-            .setFooter('Kippibot' + ' | Stream went live at: ' + `${moment(chan.created_at).format('LLL')} `)
-            .setURL('https://www.twitch.tv/' + chan.channel.display_name)
-            .addField('Status', chan.channel.status, true)
-            .addField('Viewers', chan.viewers, true)
-            .addField('Game', chan.game, true)
-            .addField('Followers', chan.channel.followers, true);
-            client.channels.get(channelId).send({embed}).catch(console.error);
-          }
+          var game = (!chan.game) ? "Null" : chan.game;
+          var status = (!chan.channel.status) ? "Untitled Broadcast" : chan.channel.status;
+          var logo = (!chan.channel.logo) ? "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png" : chan.channel.logo;
+          const embed = new Discord.RichEmbed()
+          .setTitle(chan.channel.display_name + " went online!")
+          .setColor(0x00FF00)
+          .setFooter('Kippibot' + ' | Stream went live at: ' + `${moment(chan.created_at).format('LLL')} `)
+          .setThumbnail(logo)
+          .setURL('https://www.twitch.tv/' + chan.channel.display_name)
+          .addField('Status', status, true)
+          .addField('Viewers', chan.viewers, true)
+          .addField('Game', game, true)
+          .addField('Followers', chan.channel.followers, true);
+          client.channels.get(channelId).send({embed}).catch(console.error);
         }
       }
     }
@@ -197,36 +187,23 @@ function getChannelInfo(channelId, logo, client, msgChanId) {
   kraken({
     url: 'channels/' + channelId
   }, (err, res, body) => {
+    if (!logo) logo = "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png";
     if (err || res.statusCode !== 200) {
       console.log('Error');
       console.log("There was an error recieving info from the Twitch API. Try again later.");
       return;
     }
-    if (logo === null) {
-      const embed = new Discord.RichEmbed()
-      .setTitle(body.display_name + " went offline!")
-      .setColor(0xFF0000)
-      .setFooter('Kippibot | ' + `${moment().format('LLL')} `)
-      .setURL('https://www.twitch.tv/' + body.display_name)
-      .addField('Status', 'Offline', true)
-      .addField('Viewers', 'N/A', true)
-      .addField('Game', 'N/A', true)
-      .addField('Followers', body.followers, true);
-      client.channels.get(msgChanId).send({embed}).catch(console.error);
-    }
-    else {
-      const embed = new Discord.RichEmbed()
-      .setTitle(body.display_name + " went offline!")
-      .setColor(0xFF0000)
-      .setFooter('Kippibot | ' + `${moment().format('LLL')} `)
-      .setThumbnail(logo)
-      .setURL('https://www.twitch.tv/' + body.display_name)
-      .addField('Status', 'Offline', true)
-      .addField('Viewers', 'N/A', true)
-      .addField('Game', 'N/A', true)
-      .addField('Followers', body.followers, true);
-      client.channels.get(msgChanId).send({embed}).catch(console.error);
-    }
+    const embed = new Discord.RichEmbed()
+    .setTitle(body.display_name + " went offline!")
+    .setColor(0xFF0000)
+    .setFooter('Kippibot | ' + `${moment().format('LLL')} `)
+    .setThumbnail(logo)
+    .setURL('https://www.twitch.tv/' + body.display_name)
+    .addField('Status', 'Offline', true)
+    .addField('Viewers', 'N/A', true)
+    .addField('Game', 'N/A', true)
+    .addField('Followers', body.followers, true);
+    client.channels.get(msgChanId).send({embed}).catch(console.error);
   });
 }
 
