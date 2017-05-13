@@ -2,7 +2,6 @@ const Discord = require("discord.js");
 const fs = require ('fs');
 const settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
 const token = settings.token;
-//const ddiff = require("return-deep-diff");
 const moment = require('moment');
 const client = new Discord.Client();
 var Cleverbot = require('cleverbot.io'),
