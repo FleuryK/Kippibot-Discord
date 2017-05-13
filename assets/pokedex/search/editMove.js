@@ -1,6 +1,4 @@
-const fs = require('fs');
-module.exports = (message, params, dexDir) => {
-  //C:\\Users\\caron\\Kippibot-Discord\\assets\\pokedex\\move
+module.exports = (message, params, dexDir, fs) => {
   let client = message.client;
   var moveDir = './assets/pokedex/move/';
   client.user.setGame(params[1]);
@@ -37,32 +35,3 @@ module.exports = (message, params, dexDir) => {
     });
   });
 }
-
-
-/*fs.readdir('C:\\Users\\caron\\Kippibot-Discord\\assets\\pokedex\\move', (err, files) => {
-  //var moveFile = JSON.parse(fs.readFileSync('C:\\Users\\caron\\Kippibot-Discord\\moves.json', 'utf8'));
-  var i = 0;
-  var moveFile;
-  files.forEach(file => {
-    moveFile = JSON.parse(fs.readFileSync(file, 'utf8'));
-    console.log((file.substring(0, file.length - 5)) + ": " + moveFile.index_number);
-    //moveFile.moves.push(file.substring(0, file.length - 5));
-  });
-  fs.writeFile('C:\\Users\\caron\\Kippibot-Discord\\moves.json', JSON.stringify(moveFile, null, 2), (err) => {
-    if (err) console.log("error.");
-  });
-});
-
-//var moveFile = JSON.parse(fs.readFileSync('C:\\Users\\caron\\Kippibot-Discord\\moves.json', 'utf8'));
-//client.channels.get(201593903453962240).send(moveFile.moves.length);
-
-var moveFile = JSON.parse(fs.readFileSync('C:\\Users\\caron\\Kippibot-Discord\\moves.json', 'utf8'));
-for (var i = 0; i < moveFile.moves.length; i++) {
-  var lastIndx = moveFile.moves.lastIndexOf(moveFile.moves[i]);
-  if (i !== moveFile.moves.lastIndexOf(moveFile.moves[i])) moveFile.moves[lastIndx] = "duplicate";
-}
-fs.writeFile('C:\\Users\\caron\\Kippibot-Discord\\moves.json', JSON.stringify(moveFile, null, 2), (err) => {
-  if (err) console.log("error.");
-});
-console.log(moveFile.moves.length);
-*/

@@ -1,6 +1,4 @@
-const fs = require('fs');
-const Discord = require('discord.js');
-module.exports = (message, args, dexDir) => {
+module.exports = (message, args, dexDir, fs, Discord) => {
   dexDir = dexDir + `ability/${args}.json`;
   if (!fs.existsSync(dexDir)) return message.reply("That ability does not exist. Please check your spelling and try again.");
   let abilityInfo = JSON.parse(fs.readFileSync(dexDir, 'utf8'));
