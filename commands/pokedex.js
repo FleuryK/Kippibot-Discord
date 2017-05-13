@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const settings = require('./settings.json')
+const settings = require('../settings.json')
 const dexSearch = (field) => require(`../assets/pokedex/search/${field}`);
 let typeColor = {
   "normal": 0xA8A77A, //grey

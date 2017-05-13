@@ -6,9 +6,8 @@ exports.run = (client, message, args) => {
   if (message.mentions.users.size < 1) return message.reply('You must mention someone to kick them.').catch(console.error);
 
   if (!guild.member(client.user).hasPermission('KICK_MEMBERS')) return message.reply('I do not have the correct permissions.').catch(console.error);
-
   if (!guild.member(target).kickable) return message.reply('I can\'t kick this member you dunce.');
-  target.send("You have been kicked from  " + guild.name + " Reason: " + reason);
+  message.channel.send(`Your time has come, ${target.tag} WE DON'T WANT YOU HERE!  *kicks* (Reason: ${reason})`);
   guild.member(target).kick();
 };
 
