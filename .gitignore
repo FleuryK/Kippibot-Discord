@@ -5,3 +5,8 @@ build
 streamers.json
 .eslintrc.json
 settings1.json
+assets/pokedex/egg_group
+assets/pokedex/generation
+assets/pokedex/icons
+assets/pokedex/schemas
+assets/pokedex/nature
