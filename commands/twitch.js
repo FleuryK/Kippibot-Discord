@@ -4,7 +4,7 @@ const settings = require(`../settings.json`),
   fs = require ('fs'),
   moment = require('moment');
 
-var myTimer;
+var twitchTimer;
 
 let twitchStreams = JSON.parse(fs.readFileSync('./streamers.json', 'utf8')),
   kraken = request.defaults({
@@ -99,13 +99,21 @@ exports.run = (client, message, params) => {
     }
   }
   else if (params[0] === 'startupdate') {
-    myTimer = setInterval(updateStreams, 60000, client, message);
-    message.delete();
+    twitchTimer = client.setInterval(updateStreams, 60000, client, message);
+    message.channel.send("Now polling Twitch every minute.")
+    .then(msg => {
+      msg.delete(1000);
+      message.delete(1000);
+    });
     console.log("Now polling Twitch every minute.");
   }
   else if (params[0] === 'stopupdate') {
-    clearInterval(myTimer);
-    message.delete();
+    client.clearInterval(twitchTimer);
+    message.channel.send("No longer polling Twitch.")
+    .then(msg =>{
+      msg.delete(1000);
+      message.delete(1000);
+    });
     console.log("No longer polling Twitch.");
   }
 };
@@ -152,14 +160,24 @@ function updateStreams(client) {
           const embed = new Discord.RichEmbed()
           .setTitle(chan.channel.display_name + " went online!")
           .setColor(0x00FF00)
-          .setFooter(`Stream went live at: ${moment(chan.created_at).format('LLL')} `)
+          .setFooter(`Stream went live at: ${moment(chan.created_at).format('LLL')} `, client.user.avatarURL)
+          .setImage(chan.preview.large)
           .setThumbnail(logo)
-          .setURL('https://www.twitch.tv/' + chan.channel.display_name)
-          .addField('Status', status, true)
-          .addField('Viewers', chan.viewers, true)
-          .addField('Game', game, true)
+          .setURL(chan.channel.url)
+          .addField('Status', status)
+          .addField('Game', game)
+          .addField('Channel Views', chan.channel.views, true)
           .addField('Followers', chan.channel.followers, true);
-          client.channels.get(channelId).send({embed}).catch(console.error);
+          client.channels.get(channelId).send(`**__LIVE:__** ${chan.channel.display_name}`, {embed}).then(msg => {
+            for (var j = 0; j < twitchStreams.streamers.length; j++) {
+              if (chan.channel.name === twitchStreams.streamers[j].name) {
+                twitchStreams.streamers[j].msgId = msg.id;
+                fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
+                  if (err) console.error(err);
+                });
+              }
+            }
+          });
         }
       }
     }
@@ -167,15 +185,13 @@ function updateStreams(client) {
     for (var n = 0; n < twitchStreams.streamers.length; n++) {
       if (onlineStreams.indexOf(twitchStreams.streamers[n].name) < 0) {
         if (twitchStreams.streamers[n].status !== "offline") {
-          getChannelInfo(twitchStreams.streamers[n].id, twitchStreams.streamers[n].logo, client, channelId);
+          getChannelInfo(twitchStreams.streamers[n].id, client, channelId, twitchStreams.streamers[n].msgId);
         }
         twitchStreams.streamers[n].status = "offline";
       } else {
         twitchStreams.streamers[n].status = "online";
       }
     }
-
-
     fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
       if (err) console.error(err);
     });
@@ -183,27 +199,62 @@ function updateStreams(client) {
 
 );
 }
-function getChannelInfo(channelId, logo, client, msgChanId) {
+
+
+function getChannelInfo(channelId, client, chanId, msgId) {
   kraken({
     url: 'channels/' + channelId
   }, (err, res, body) => {
-    if (!logo) logo = "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png";
     if (err || res.statusCode !== 200) {
       console.log('Error');
       console.log("There was an error recieving info from the Twitch API. Try again later.");
       return;
     }
-    const embed = new Discord.RichEmbed()
-    .setTitle(body.display_name + " went offline!")
-    .setColor(0xFF0000)
-    .setFooter(`${moment().format('LLL')} `)
-    .setThumbnail(logo)
-    .setURL('https://www.twitch.tv/' + body.display_name)
-    .addField('Status', 'Offline', true)
-    .addField('Viewers', 'N/A', true)
-    .addField('Game', 'N/A', true)
-    .addField('Followers', body.followers, true);
-    client.channels.get(msgChanId).send({embed}).catch(console.error);
+    //return console.log(client.channels.get(chanId);
+    client.channels.get(chanId).fetchMessage(msgId).
+    then(function(message) {
+      var oldFollowers = message.embeds[0].fields[4].value;
+      var followerChange = body.followers - oldFollowers;
+      var game = (!body.game) ? "Null" : body.game;
+      var status = (!body.status) ? "Untitled Broadcast" : body.status;
+      var logo = (!body.logo) ? "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png" : body.logo;
+      message.edit(`**__OFFLINE__**: ${body.display_name}`, {embed: {
+        title: body.display_name,
+        color: 0xFF0000,
+        url: body.url,
+        fields: [
+          {
+            name: "Status",
+            value: status
+          },
+          {
+            name: "Game",
+            value: game
+          },
+          {
+            name: 'Channel Views',
+            value: body.views,
+            inline: true
+          },
+          {
+            name: "Followers",
+            value: `${body.followers} (${followerChange})`,
+            inline: true
+          }
+        ],
+        thumbnail: {
+          url: logo
+        },
+        footer: {
+          icon_url: client.user.avatarURL,
+          text: `${moment().format('LLL')}`
+        },
+        image: {
+          url: body.video_banner
+        }
+      }});
+    });
+
   });
 }
 
