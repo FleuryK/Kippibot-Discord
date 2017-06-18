@@ -105,4 +105,5 @@ client.on('debug', (e) => console.info(e));
 
 process.on("unhandledRejection", err => {
   console.error("Uncaught Promise Error: \n" + err.stack);
+  client.users.get(settings.masterId).send("```ERROR``` \nUncaught Promise Error: \n " + err.stack);
 });
