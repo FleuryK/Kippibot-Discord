@@ -213,7 +213,7 @@ function getChannelInfo(channelId, client, chanId, msgId) {
     //return console.log(client.channels.get(chanId);
     client.channels.get(chanId).fetchMessage(msgId).
     then(function(message) {
-      var oldFollowers = message.embeds[0].fields[4].value;
+      var oldFollowers = message.embeds[0].fields[3].value;
       var followerChange = body.followers - oldFollowers;
       var game = (!body.game) ? "Null" : body.game;
       var status = (!body.status) ? "Untitled Broadcast" : body.status;
