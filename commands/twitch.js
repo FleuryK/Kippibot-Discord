@@ -170,7 +170,12 @@ function updateStreams(client) {
           .addField('Followers', chan.channel.followers, true);
           client.channels.get(channelId).send(`**__LIVE:__** ${chan.channel.display_name}`, {embed}).then(msg => {
             for (var j = 0; j < twitchStreams.streamers.length; j++) {
-              if (chan.channel.name === twitchStreams.streamers[j].name) {
+              if (chan.channel._id === parseInt(twitchStreams.streamers[j].id, 10)) {
+                // Check to see if the channel has gone through any name changes, and updates the name in the database.
+                if (chan.channel.name !== twitchStreams.streamers[j].name) {
+                  twitchStreams.streamers[j].name = chan.channel.name;
+                  twitchStreams.streamers[j].status = "online";
+                }
                 twitchStreams.streamers[j].msgId = msg.id;
                 fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
                   if (err) console.error(err);
