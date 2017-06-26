@@ -5,6 +5,7 @@ const settings = require(`../settings.json`),
   moment = require('moment');
 
 var twitchTimer;
+var guild;
 
 let twitchStreams = JSON.parse(fs.readFileSync('./streamers.json', 'utf8')),
   kraken = request.defaults({
@@ -72,7 +73,9 @@ exports.run = (client, message, params) => {
           name: stream,
           id: userId,
           status: "offline",
-          logo: logo
+          logo: logo,
+          msgId: null,
+          discord: null
         };
         fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
           if (err) console.error(err);
@@ -97,6 +100,26 @@ exports.run = (client, message, params) => {
       }
       if (j > twitchStreams.streamers.length + 1) return message.channel.send("Channel " + stream + " is not in the caster database." );
     }
+    if (params[1] === 'linkdiscord') {
+      var userId;
+      //This command can be used for a mentioned user, or a user ID.
+      if (params[3]) userId = (message.mentions.users.size > 0) ? message.mentions.users.first().id : params[3];
+      //If there is no target, the ID will instead be that of the user who triggered this command.
+      else userId = message.author.id;
+      for (var k = 0; k < twitchStreams.streamers.length; k++) {
+        if (stream === twitchStreams.streamers[k].name) {
+          twitchStreams.streamers[k].discord = userId;
+          fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
+            if (err) console.error(err);
+            else {
+              return message.channel.send("Discord successfully linked with channel " + stream );
+            }
+          });
+        }
+      }
+      if (k > twitchStreams.streamers.length + 1) return message.channel.send("Channel " + stream + " is not in the caster database." );
+    }
+
   }
   else if (params[0] === 'startupdate') {
     twitchTimer = client.setInterval(updateStreams, 60000, client, message);
@@ -131,6 +154,7 @@ function alreadyOnline(channel) {
 }
 
 function updateStreams(client) {
+  guild = client.guilds.first();
   var channelId = settings.defaultChannelAnnouncements;
   var streams = "";
   var onlineStreams = [];
@@ -156,9 +180,12 @@ function updateStreams(client) {
         if (!alreadyOnline(chan.channel.name)) {
           var game = (!chan.game) ? "Null" : chan.game;
           var status = (!chan.channel.status) ? "Untitled Broadcast" : chan.channel.status;
+          var titleMsg;
+          if (chan.stream_type === "watch_party") titleMsg = `**__VODCAST:__** ${chan.channel.display_name} - Watch them over at ${chan.channel.url}`;
+          else titleMsg = `**__LIVE:__** ${chan.channel.display_name} - Watch them over at ${chan.channel.url}`
           var logo = (!chan.channel.logo) ? "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png" : chan.channel.logo;
           const embed = new Discord.RichEmbed()
-          .setTitle(chan.channel.display_name + " went online!")
+          .setTitle(chan.channel.display_name)
           .setColor(0x00FF00)
           .setFooter(`Stream went live at: ${moment(chan.created_at).format('LLL')} `, client.user.avatarURL)
           .setImage(chan.preview.large)
@@ -168,9 +195,14 @@ function updateStreams(client) {
           .addField('Game', game)
           .addField('Channel Views', chan.channel.views, true)
           .addField('Followers', chan.channel.followers, true);
-          client.channels.get(channelId).send(`**__LIVE:__** ${chan.channel.display_name}`, {embed}).then(msg => {
+          client.channels.get(channelId).send(titleMsg, {embed}).then(msg => {
             for (var j = 0; j < twitchStreams.streamers.length; j++) {
               if (chan.channel._id === parseInt(twitchStreams.streamers[j].id, 10)) {
+                if(twitchStreams.streamers[j].discord && guild.members.get(twitchStreams.streamers[j].discord)) {
+                  if(chan.stream_type === "watch_party")
+                    guild.members.get(twitchStreams.streamers[j].discord).addRole(settings.vodcastRoleID);
+                  else guild.members.get(twitchStreams.streamers[j].discord).addRole(settings.streamerRoleID);
+                }
                 // Check to see if the channel has gone through any name changes, and updates the name in the database.
                 if (chan.channel.name !== twitchStreams.streamers[j].name) {
                   twitchStreams.streamers[j].name = chan.channel.name;
@@ -186,11 +218,16 @@ function updateStreams(client) {
         }
       }
     }
-    //Search for the channel, and change its status if applicable.
+    //If the channel is offline, set it to offline.
     for (var n = 0; n < twitchStreams.streamers.length; n++) {
       if (onlineStreams.indexOf(twitchStreams.streamers[n].name) < 0) {
         if (twitchStreams.streamers[n].status !== "offline") {
           getChannelInfo(twitchStreams.streamers[n].id, client, channelId, twitchStreams.streamers[n].msgId);
+          let guildMem = guild.members.get(twitchStreams.streamers[n].discord);
+          if(guildMem) {
+            if (guildMem.roles.get(settings.streamerRoleID)) guildMem.removeRole(settings.streamerRoleID);
+            if (guildMem.roles.get(settings.vodcastRoleID)) guildMem.removeRole(settings.vodcastRoleID);
+          }
         }
         twitchStreams.streamers[n].status = "offline";
       } else {
@@ -206,16 +243,15 @@ function updateStreams(client) {
 }
 
 
-function getChannelInfo(channelId, client, chanId, msgId) {
+function getChannelInfo(streamId, client, chanId, msgId) {
   kraken({
-    url: 'channels/' + channelId
+    url: 'channels/' + streamId
   }, (err, res, body) => {
     if (err || res.statusCode !== 200) {
       console.log('Error');
       console.log("There was an error recieving info from the Twitch API. Try again later.");
       return;
     }
-    //return console.log(client.channels.get(chanId);
     client.channels.get(chanId).fetchMessage(msgId).
     then(function(message) {
       var oldFollowers = message.embeds[0].fields[3].value;
