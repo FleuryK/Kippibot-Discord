@@ -26,7 +26,7 @@ exports.run = (client, message, params) => {
   }
   var resNum = Math.floor(Math.random() * responses.length);
   var msg = "The Magic Kippibot 8-ball predicts... " + responses[resNum];
-  return message.channel.send(msg, {code: 'js'}); 
+  return message.channel.send(msg, {code: 'css'});
 };
 exports.conf = {
   enabled: true,
@@ -37,5 +37,5 @@ exports.conf = {
 exports.help = {
   name: "8ball",
   description: "Need your fortune told? Have a yes/no question? Find out the 100% true results!",
-  usage: "8ball"
+  usage: "+8ball"
 };

@@ -9,7 +9,7 @@ exports.conf = {
   enabled: true,
   guildOnly: false,
   aliases: ['inv'],
-  permLevel: 4
+  permLevel: 5
 };
 
 exports.help = {
