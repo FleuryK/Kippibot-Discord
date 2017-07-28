@@ -1,0 +1,2 @@
+# Kippibot-Discord
+Discord bot
