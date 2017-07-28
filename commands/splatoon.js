@@ -36,7 +36,7 @@ ${obj.schedule[1].modes[1].rules.en}: ${obj.schedule[1].modes[1].maps[0].nameEN}
 
 In ${formatTimes(timeSecond)}:\n
 Turf Wars: ${obj.schedule[2].modes[0].maps[0].nameEN} & ${obj.schedule[2].modes[0].maps[1].nameEN}
-${obj.schedule[2].modes[1].rules.en}: ${obj.schedule[2].modes[1].maps[0].nameEN} & ${obj.schedule[2].modes[1].maps[1].nameEN}`);
+${obj.schedule[2].modes[1].rules.en}: ${obj.schedule[2].modes[1].maps[0].nameEN} & ${obj.schedule[2].modes[1].maps[1].nameEN}`, {code: 'css'});
     }
   });
 }

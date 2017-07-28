@@ -1,3 +1,3 @@
 module.exports = client => {
-  console.log(client.user.username + ` was disconnected at ${new Date()}) T_T`);
+  client.log("EVENT", `${client.user.username} was disconnected at ${new Date()}) T_T`);
 };

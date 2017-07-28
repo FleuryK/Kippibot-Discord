@@ -1,303 +1,55 @@
 const settings = require(`../settings.json`),
   request = require('request'),
-  Discord = require('discord.js'),
+  //Discord = require('discord.js'),
   fs = require ('fs'),
-  moment = require('moment');
+  //moment = require('moment'),
+  twDir = './modules/twitch';
 
-var twitchTimer;
-var guild;
+var twitchReq = (func) => require(`../modules/twitchFunctions/${func}`);
 
-let twitchStreams = JSON.parse(fs.readFileSync('./streamers.json', 'utf8')),
-  kraken = request.defaults({
-    baseUrl: 'https://api.twitch.tv/kraken/',
-    headers: {
-      'Accept': 'application/vnd.twitchtv.v5+json',
-      'Client-ID': settings.twitchClientId,
-      'Authorization': settings.twitchAuthToken
-    },
-    json: true
-  });
+var kraken = request.defaults({
+  baseUrl: 'https://api.twitch.tv/kraken/',
+  headers: {
+    'Accept': 'application/vnd.twitchtv.v5+json',
+    'Client-ID': settings.twitchClientId,
+    'Authorization': settings.twitchAuthToken
+  },
+  json: true
+});
 
 exports.run = (client, message, params) => {
-  if(!params[0]) {
-    return message.channel.send("You must specify a command!").catch(console.error);
-  }
-  for(var x = 0; x < params.length; x++) {
-    params[x] = params[x].toLowerCase();
-  }
-  if (params[0] === 'channel') {
-
-    if (!params[1]) {
-      return message.channel.send("You must specify an operand!").catch(console.error);
+  switch(params[0]) {
+  case "channel":
+    var chanCmd = {
+      "add": "addStream",
+      "remove": "removeStream",
+      "rem": "removeStream"
+    };
+    if (!params[2]) return message.reply("Insufficient parameters.");
+    try {
+      twitchReq(chanCmd[params[1]])(client, message, params, kraken, fs, twDir, settings);
+    } catch (e) {
+      client.log("ERROR", e);
     }
-
-    if (!params[2]) {
-      return message.channel.send("You must specify a channel!").catch(console.error);
-    }
-
-		/*if (params[1] === 'announce') {
-			let channelId = message.mentions.channels.firstKey();
-			/*settings.
-			fs.writeFile('./settings.json', JSON.stringify(settingsConf, null, 2), (err) => {
-
-			}
-
-			message.channel.sendMessage("I will now announce streams in channel: " + params[2]);
-			//return client.channels.get(channelId).sendMessage("it worked master!");
-			//return console.log(message.mentions.channels.firstKey());
-		}*/
-
-    let stream = params[2];
-    if (params[1] === 'add') {
-      for (var i = 0; i < twitchStreams.streamers.length; i++) {
-        if (stream === twitchStreams.streamers[i].name) {
-          return message.channel.send("Channel " + stream + " is already in the caster database." );
-        }
-      }
-      let userId;
-      let logo;
-      kraken({
-        url: 'users?login=' + stream
-      }, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
-          console.log('Error');
-          message.channel.send("There was an error recieving info from the Twitch API. Try again later.");
-          return;
-        }
-        if (body._total === 0) {
-          return message.channel.send("That channel does not exist, you dunce.");
-        }
-        userId = body.users[0]._id;
-        logo = body.users[0].logo;
-        twitchStreams.streamers[twitchStreams.streamers.length] = {
-          name: stream,
-          id: userId,
-          status: "offline",
-          logo: logo,
-          msgId: null,
-          discord: null
-        };
-        fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
-          if (err) console.error(err);
-          else {
-            message.channel.send("Channel " + stream + " added to database.");
-          }
-        });
-
-      });
-    }
-    if (params[1] === 'remove') {
-      for (var j = 0; j < twitchStreams.streamers.length; j++) {
-        if (stream === twitchStreams.streamers[j].name) {
-          twitchStreams.streamers.splice(j, 1);
-          fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
-            if (err) console.error(err);
-            else {
-              return message.channel.send("Channel " + stream + " has been removed from the caster database." );
-            }
-          });
-        }
-      }
-      if (j > twitchStreams.streamers.length + 1) return message.channel.send("Channel " + stream + " is not in the caster database." );
-    }
-    if (params[1] === 'linkdiscord') {
-      var userId;
-      //This command can be used for a mentioned user, or a user ID.
-      if (params[3]) userId = (message.mentions.users.size > 0) ? message.mentions.users.first().id : params[3];
-      //If there is no target, the ID will instead be that of the user who triggered this command.
-      else userId = message.author.id;
-      for (var k = 0; k < twitchStreams.streamers.length; k++) {
-        if (stream === twitchStreams.streamers[k].name) {
-          twitchStreams.streamers[k].discord = userId;
-          fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
-            if (err) console.error(err);
-            else {
-              return message.channel.send("Discord successfully linked with channel " + stream );
-            }
-          });
-        }
-      }
-      if (k > twitchStreams.streamers.length + 1) return message.channel.send("Channel " + stream + " is not in the caster database." );
+    break;
+  case "set":
+    var setCmd = {
+      "streamRole": "setStreamRole",
+      "vodcastRole": "setVodcastRole",
+      "announcements": "setDefaultChan",
+      "defaultAnnounceChannel": "setDefaultChan",
+      "notify": "setNotify"
+    };
+    if (!params[2]) return message.reply("Insufficient parameters.");
+    try {
+      twitchReq(setCmd[params[1]])(client, message, params[2], fs, twDir, settings);
+    } catch (e) {
+      client.log("ERROR", e);
     }
 
   }
-  else if (params[0] === 'startupdate') {
-    twitchTimer = client.setInterval(updateStreams, 60000, client, message);
-    message.channel.send("Now polling Twitch every minute.")
-    .then(msg => {
-      msg.delete(1000);
-      message.delete(1000);
-    });
-    console.log("Now polling Twitch every minute.");
-  }
-  else if (params[0] === 'stopupdate') {
-    client.clearInterval(twitchTimer);
-    message.channel.send("No longer polling Twitch.")
-    .then(msg =>{
-      msg.delete(1000);
-      message.delete(1000);
-    });
-    console.log("No longer polling Twitch.");
-  }
+
 };
-
-function alreadyOnline(channel) {
-  for (var i = 0; i < twitchStreams.streamers.length; i++) {
-    if (channel === twitchStreams.streamers[i].name) {
-      if (twitchStreams.streamers[i].status === "online") {
-        return true;
-      }
-
-      return false;
-    }
-  }
-}
-
-function updateStreams(client) {
-  guild = client.guilds.first();
-  var channelId = settings.defaultChannelAnnouncements;
-  var streams = "";
-  var onlineStreams = [];
-  for (var j = 0; j < twitchStreams.streamers.length; j++) {
-    if (j === twitchStreams.streamers.length - 1) {
-      streams = streams + twitchStreams.streamers[j].id;
-    } else {
-      streams = streams + twitchStreams.streamers[j].id + ",";
-    }
-  }
-  //Get stream info of multiple channels.
-  kraken({
-    url: 'streams/?channel=' + streams
-  }, (err, res, body) => {
-    if (err || res.statusCode !== 200) {
-      return console.log('Error recieving info from the Twitch API.');
-    }
-    //console.log(body);
-    if (body._total > 0) {
-      for (var i = 0; i < body.streams.length; i++) {
-        let chan = body.streams[i];
-        onlineStreams[i] = chan.channel.name;
-        if (!alreadyOnline(chan.channel.name)) {
-          var game = (!chan.game) ? "Null" : chan.game;
-          var status = (!chan.channel.status) ? "Untitled Broadcast" : chan.channel.status;
-          var titleMsg;
-          if (chan.stream_type === "watch_party") titleMsg = `**__VODCAST:__** ${chan.channel.display_name} - Watch them over at ${chan.channel.url}`;
-          else titleMsg = `**__LIVE:__** ${chan.channel.display_name} - Watch them over at ${chan.channel.url}`
-          var logo = (!chan.channel.logo) ? "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png" : chan.channel.logo;
-          const embed = new Discord.RichEmbed()
-          .setTitle(chan.channel.display_name)
-          .setColor(0x00FF00)
-          .setFooter(`Stream went live at: ${moment(chan.created_at).format('LLL')} `, client.user.avatarURL)
-          .setImage(chan.preview.large)
-          .setThumbnail(logo)
-          .setURL(chan.channel.url)
-          .addField('Status', status)
-          .addField('Game', game)
-          .addField('Channel Views', chan.channel.views, true)
-          .addField('Followers', chan.channel.followers, true);
-          client.channels.get(channelId).send(titleMsg, {embed}).then(msg => {
-            for (var j = 0; j < twitchStreams.streamers.length; j++) {
-              if (chan.channel._id === parseInt(twitchStreams.streamers[j].id, 10)) {
-                if(twitchStreams.streamers[j].discord && guild.members.get(twitchStreams.streamers[j].discord)) {
-                  if(chan.stream_type === "watch_party")
-                    guild.members.get(twitchStreams.streamers[j].discord).addRole(settings.vodcastRoleID);
-                  else guild.members.get(twitchStreams.streamers[j].discord).addRole(settings.streamerRoleID);
-                }
-                // Check to see if the channel has gone through any name changes, and updates the name in the database.
-                if (chan.channel.name !== twitchStreams.streamers[j].name) {
-                  twitchStreams.streamers[j].name = chan.channel.name;
-                  twitchStreams.streamers[j].status = "online";
-                }
-                twitchStreams.streamers[j].msgId = msg.id;
-                fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
-                  if (err) console.error(err);
-                });
-              }
-            }
-          });
-        }
-      }
-    }
-    //If the channel is offline, set it to offline.
-    for (var n = 0; n < twitchStreams.streamers.length; n++) {
-      if (onlineStreams.indexOf(twitchStreams.streamers[n].name) < 0) {
-        if (twitchStreams.streamers[n].status !== "offline") {
-          getChannelInfo(twitchStreams.streamers[n].id, client, channelId, twitchStreams.streamers[n].msgId);
-          let guildMem = guild.members.get(twitchStreams.streamers[n].discord);
-          if(guildMem) {
-            if (guildMem.roles.get(settings.streamerRoleID)) guildMem.removeRole(settings.streamerRoleID);
-            if (guildMem.roles.get(settings.vodcastRoleID)) guildMem.removeRole(settings.vodcastRoleID);
-          }
-        }
-        twitchStreams.streamers[n].status = "offline";
-      } else {
-        twitchStreams.streamers[n].status = "online";
-      }
-    }
-    fs.writeFile('./streamers.json', JSON.stringify(twitchStreams, null, 2), (err) => {
-      if (err) console.error(err);
-    });
-  }
-
-);
-}
-
-
-function getChannelInfo(streamId, client, chanId, msgId) {
-  kraken({
-    url: 'channels/' + streamId
-  }, (err, res, body) => {
-    if (err || res.statusCode !== 200) {
-      console.log('Error');
-      console.log("There was an error recieving info from the Twitch API. Try again later.");
-      return;
-    }
-    client.channels.get(chanId).fetchMessage(msgId).
-    then(function(message) {
-      var oldFollowers = message.embeds[0].fields[3].value;
-      var followerChange = body.followers - oldFollowers;
-      var game = (!body.game) ? "Null" : body.game;
-      var status = (!body.status) ? "Untitled Broadcast" : body.status;
-      var logo = (!body.logo) ? "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_70x70.png" : body.logo;
-      message.edit(`**__OFFLINE__**: ${body.display_name}`, {embed: {
-        title: body.display_name,
-        color: 0xFF0000,
-        url: body.url,
-        fields: [
-          {
-            name: "Status",
-            value: status
-          },
-          {
-            name: "Game",
-            value: game
-          },
-          {
-            name: 'Channel Views',
-            value: body.views,
-            inline: true
-          },
-          {
-            name: "Followers",
-            value: `${body.followers} (${followerChange})`,
-            inline: true
-          }
-        ],
-        thumbnail: {
-          url: logo
-        },
-        footer: {
-          icon_url: client.user.avatarURL,
-          text: `${moment().format('LLL')}`
-        },
-        image: {
-          url: body.video_banner
-        }
-      }});
-    });
-
-  });
-}
 
 exports.conf = {
   enabled: true,

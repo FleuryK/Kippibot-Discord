@@ -1,7 +1,7 @@
 const fs = require('fs');
 const Discord = require('discord.js');
 const settings = require('../settings.json')
-const dexSearch = (field) => require(`../assets/pokedex/search/${field}`);
+const dexSearch = (field) => require(`../modules/pokedex/search/${field}`);
 let typeColor = {
   "normal": 0xA8A77A, //grey
   "fire": 0xEE8130, //orange
@@ -24,7 +24,7 @@ let typeColor = {
 };
 var dexDir;
 exports.run = (client, message, params) => {
-  dexDir = "./assets/pokedex/";
+  dexDir = "./modules/pokedex/";
   if (!params[0]) return message.channel.send("Error: Search parameter is blank. ").catch(console.error);
   var search = params[0].toLowerCase();
   var args = params.slice(1).join(" ").toLowerCase().replace(/ /g, "_");

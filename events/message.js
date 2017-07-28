@@ -1,12 +1,8 @@
 const fs = require ('fs');
 const settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
-module.exports = (message) => {
-  let client = message.client;
+module.exports = (client, message) => {
+  //return console.log(message.author);
   if (message.author.bot) return;
-  if (message.channel.type === 'dm') {
-    message.channel.send('DMs are a work in progress, sorry fam. Have a cookie instead :cookie:');
-    return;
-  }
   if (!message.content.startsWith(settings.prefix)) {
     if(message.mentions.users.size >= 1) {
       if(message.mentions.users.first() === client.user && client.user.id === message.content.split(' ')[0].substring(2, 20) &&
@@ -43,12 +39,17 @@ module.exports = (message) => {
       return;
     });
   }
+  else if ((command === "linktwitch") && (message.channel.type === "dm"))  {
+    require('./modules/twitchFunctions/linkStream');
+    return;
+  }
   else if (client.commands.has(command)) {
     cmd = client.commands.get(command);
   } else if (client.aliases.has(command)) {
     cmd = client.commands.get(client.aliases.get(command));
   }
   if (cmd) {
+    if (cmd.conf.guildOnly && !message.guild) return;
     if (perms < cmd.conf.permLevel) return;
     cmd.run(client, message, params, perms);
   }
